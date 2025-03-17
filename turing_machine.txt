@@ -1,0 +1,147 @@
+ Driver.java
+class Driver {
+    private String name;
+    private String country;
+    private int totalPoints;
+
+    public Driver(String name, String country) {
+        this.name = name;
+        this.country = country;
+        this.totalPoints = 0;
+    }
+    
+    public String getName() { return name; }
+    public String getCountry() { return country; }
+    public int getTotalPoints() { return totalPoints; }
+    
+    public void addPoints(int points) {
+        this.totalPoints += points;
+    }
+}
+
+ Abstract Car Class
+abstract class RallyCar {
+    protected String make, model;
+    protected int horsepower;
+    
+    public RallyCar(String make, String model, int horsepower) {
+        this.make = make;
+        this.model = model;
+        this.horsepower = horsepower;
+    }
+    
+    abstract double calculatePerformance();
+}
+ GravelCar.java
+class GravelCar extends RallyCar {
+    public GravelCar(String make, String model, int horsepower) {
+        super(make, model, horsepower);
+    }
+    
+    public double calculatePerformance() {
+        return horsepower * 0.85;
+    }
+}
+
+ AsphaltCar.java
+class AsphaltCar extends RallyCar {
+    public AsphaltCar(String make, String model, int horsepower) {
+        super(make, model, horsepower);
+    }
+    
+    public double calculatePerformance() {
+        return horsepower * 0.95;
+    }
+}
+
+RaceResult Interface
+interface RaceResult {
+    void recordResult(Driver driver, int position);
+    void displayResults();
+}
+
+ RallyRaceResult.java
+import java.util.*;
+class RallyRaceResult implements RaceResult {
+    private Map<Driver, Integer> results = new HashMap<>();
+    
+    public void recordResult(Driver driver, int position) {
+        int points = switch (position) {
+            case 1 -> 25;
+            case 2 -> 18;
+            case 3 -> 15;
+            case 4 -> 12;
+            default -> 0;
+        };
+        driver.addPoints(points);
+        results.put(driver, points);
+    }
+    
+    public void displayResults() {
+        results.forEach((driver, points) -> 
+            System.out.println(driver.getName() + " - " + points + " points"));
+    }
+}
+
+// ChampionshipManager (Singleton)
+class ChampionshipManager {
+    private static ChampionshipManager instance;
+    private List<Driver> drivers = new ArrayList<>();
+    private List<RallyRaceResult> races = new ArrayList<>();
+
+    private ChampionshipManager() {}
+    
+    public static ChampionshipManager getInstance() {
+        if (instance == null) {
+            instance = new ChampionshipManager();
+        }
+        return instance;
+    }
+    
+    public void registerDriver(Driver driver) {
+        drivers.add(driver);
+    }
+    
+    public void addRace(RallyRaceResult race) {
+        races.add(race);
+    }
+    
+    public void displayStandings() {
+        drivers.sort((d1, d2) -> Integer.compare(d2.getTotalPoints(), d1.getTotalPoints()));
+        for (Driver driver : drivers) {
+            System.out.println(driver.getName() + " (" + driver.getCountry() + "): " + driver.getTotalPoints() + " points");
+        }
+    }
+}
+
+ ChampionshipStatistics (Utility Class)
+class ChampionshipStatistics {
+    public static void printStatistics(List<Driver> drivers) {
+        System.out.println("Total Drivers: " + drivers.size());
+        int totalPoints = drivers.stream().mapToInt(Driver::getTotalPoints).sum();
+        System.out.println("Total Points: " + totalPoints);
+        System.out.println("Average Points per Driver: " + (totalPoints / (double) drivers.size()));
+    }
+}
+
+ Main.java
+public class Main {
+    public static void main(String[] args) {
+        ChampionshipManager manager = ChampionshipManager.getInstance();
+        
+        Driver d1 = new Driver("Sébastien Ogier", "France");
+        Driver d2 = new Driver("Kalle Rovanperä", "Finland");
+        
+        manager.registerDriver(d1);
+        manager.registerDriver(d2);
+        
+        RallyRaceResult race1 = new RallyRaceResult();
+        race1.recordResult(d1, 1);
+        race1.recordResult(d2, 2);
+        
+        manager.addRace(race1);
+        
+        System.out.println("==== CHAMPIONSHIP STANDINGS ====");
+        manager.displayStandings();
+    }
+}
